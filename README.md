@@ -1,4 +1,4 @@
-# ALIEN SCAPE
+# 3D Game-ALIEN SCAPE
 
 
 # 🚀 Proyecto Increíble  
@@ -7,10 +7,6 @@ Bienvenido a nuestro repositorio 🎉
 # Descripción
 🚧 **Estado del Proyecto: En Desarrollo** 🚧
 Este proyecto se encuentra en face inicial, una aventura de escape en primera persona.
-
----
-
-Este proyecto es fruto del trabajo en equipo dentro de la **Diplomatura de Programación en Entornos Virtuales**, impulsada por la **Secretaría de Economía del Conocimiento** de la **Agencia de Innovación de Tierra del Fuego, Antártida e Islas del Atlántico Sur**. Es un desafío que nos permite explorar el desarrollo de videojuegos en un entorno colaborativo, combinando creatividad, estrategia y mucha diversión.
 
 ---
 
@@ -26,6 +22,7 @@ Este proyecto es fruto del trabajo en equipo dentro de la **Diplomatura de Progr
 
 ## 🤝 Contribuciones
 Este prototipo se basa en las mecanicas, en nuestros equipo de desarrollo no hay diseñadores por lo cual en grafica lo van a sentir rustico.
+
 ---
 
 ## 👥 Autores
