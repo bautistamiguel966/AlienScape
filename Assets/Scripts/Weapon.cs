@@ -2,11 +2,11 @@ using UnityEngine;
 
 public abstract class Weapon : MonoBehaviour
 {
-    protected Transform firePoint; // Oculto en el inspector
-    public int ammo = 10;
-    public int maxAmmo = 10;
-    public float cooldown = 0.5f;
-    public GameObject projectilePrefab;
+    protected Transform firePoint; // Punto de disparo (oculto en el inspector)
+    public int ammo = 10; // Munición actual
+    public int maxAmmo = 10; // Munición máxima
+    public float cooldown = 0.5f; // Tiempo de enfriamiento entre disparos
+    public GameObject projectilePrefab; // Prefab del proyectil
 
     protected virtual void Start()
     {
