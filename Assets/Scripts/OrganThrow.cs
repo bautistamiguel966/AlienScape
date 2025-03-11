@@ -3,8 +3,8 @@ using UnityEngine;
 public class OrganThrow : Weapon
 {
     public Transform firePointOrgan; // Punto de disparo del lanzamiento de órgano
-    public float throwForce = 10f;
-    public float arcHeight = 2f;
+    public float throwForce = 5f; // Fuerza del lanzamiento
+    public float throwAngle = 45f; // Ángulo de disparo en grados
 
     protected override void Start()
     {
@@ -22,7 +22,20 @@ public class OrganThrow : Weapon
         Rigidbody rb = organ.GetComponent<Rigidbody>();
         if (rb != null)
         {
-            Vector3 direction = firePoint.forward + Vector3.up * arcHeight;
+            // Convertir el ángulo de grados a radianes
+            float angleInRadians = throwAngle * Mathf.Deg2Rad;
+
+            // Calcular la dirección en el plano vertical (hacia adelante y hacia arriba)
+            Vector3 direction = new Vector3(
+                0, // No hay componente lateral
+                Mathf.Sin(angleInRadians), // Componente vertical (hacia arriba)
+                Mathf.Cos(angleInRadians) // Componente horizontal (hacia adelante)
+            );
+
+            // Aplicar la rotación del firePoint a la dirección
+            direction = firePoint.rotation * direction;
+
+            // Aplicar la fuerza al proyectil
             rb.AddForce(direction * throwForce, ForceMode.Impulse);
         }
         else

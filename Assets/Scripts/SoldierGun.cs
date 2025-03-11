@@ -14,14 +14,29 @@ public class SoldierGun : Weapon
         base.Start();
     }
 
-    protected override void OnShoot()
+    public void ShootTowards(Vector3 direction)
     {
-        // Lógica específica de disparo para SoldierGun
-        GameObject projectile = Instantiate(projectilePrefab, firePoint.position, firePoint.rotation);
+        if (CanShoot())
+        {
+            if (firePoint == null || projectilePrefab == null)
+            {
+                Debug.LogError("FirePoint or ProjectilePrefab is not assigned in " + GetType().Name);
+                return;
+            }
+
+            ammo--; // Reducir la munición
+            OnShootTowards(direction);
+        }
+    }
+
+    protected void OnShootTowards(Vector3 direction)
+    {
+        // Instanciar el proyectil y dispararlo en la dirección especificada
+        GameObject projectile = Instantiate(projectilePrefab, firePoint.position, Quaternion.LookRotation(direction));
         Rigidbody rb = projectile.GetComponent<Rigidbody>();
         if (rb != null)
         {
-            rb.linearVelocity = firePoint.forward * projectileSpeed;
+            rb.linearVelocity = direction * projectileSpeed;
         }
         else
         {

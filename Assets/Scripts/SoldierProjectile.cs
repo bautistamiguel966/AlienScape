@@ -20,14 +20,27 @@ public class SoldierProjectile : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
+        // Verificar si el proyectil colisiona con el jugador
         if (collision.gameObject.CompareTag("Player"))
         {
-            // Si el proyectil colisiona con el jugador, aplicar daño
+            // Obtener el componente PlayerHealth del jugador
             PlayerHealth playerHealth = collision.gameObject.GetComponent<PlayerHealth>();
             if (playerHealth != null)
             {
+                // Aplicar daño al jugador
                 playerHealth.TakeDamage(damage);
+                Debug.Log("Player recibió daño: " + damage);
             }
+            else
+            {
+                Debug.LogError("El objeto con tag 'Player' no tiene el componente PlayerHealth");
+            }
+        }
+
+        // Verificar si el proyectil colisiona con un Soldier (y evitar que se dañe a sí mismo)
+        else if (collision.gameObject.CompareTag("Soldier"))
+        {
+            Debug.Log("El proyectil colisionó con un Soldier, pero no se aplicará daño.");
         }
 
         // Destruir el proyectil al colisionar

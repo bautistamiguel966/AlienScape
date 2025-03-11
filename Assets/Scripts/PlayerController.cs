@@ -6,8 +6,9 @@ public class PlayerController : MonoBehaviour
     [Header("Movement Settings")]
     public float walkSpeed = 5f;
     public float sprintSpeed = 8f;
-    public float jumpForce = 1.5f;
-    public float gravity = -25f;
+    public float jumpForce = 1.5f; // Ajustado para un salto más controlado
+    public float gravity = -25f;   // Gravedad base
+    public float gravityAcceleration = 2f; // Aceleración de la gravedad
     public float lookSensitivity = 2f;
 
     [Header("Weapons")]
@@ -46,15 +47,16 @@ public class PlayerController : MonoBehaviour
 
         if (characterController.isGrounded)
         {
-            _velocity.y = -2f;
+            _velocity.y = -2f; // Pequeña fuerza hacia abajo para mantener al jugador pegado al suelo
             if (_isJumping)
             {
-                _velocity.y = Mathf.Sqrt(jumpForce * -2f * gravity);
+                _velocity.y = Mathf.Sqrt(jumpForce * -2f * gravity); // Aplicar la fuerza del salto
             }
         }
         else
         {
-            _velocity.y += gravity * Time.deltaTime;
+            // Aplicar aceleración de la gravedad
+            _velocity.y += gravity * gravityAcceleration * Time.deltaTime;
         }
 
         characterController.Move((moveDirection + _velocity) * Time.deltaTime);
