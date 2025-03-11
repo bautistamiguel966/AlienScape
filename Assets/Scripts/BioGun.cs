@@ -2,30 +2,27 @@ using UnityEngine;
 
 public class BioGun : Weapon
 {
-    public Transform firePointGun; // Punto de disparo del arma biológica
+    public Transform firePointGun; // Punto de disparo del arma
     public float projectileSpeed = 20f;
 
     protected override void Start()
     {
-        // Asignar el firePoint específico para BioGun
         firePoint = firePointGun;
-
-        // Llamar al Start de la clase base para verificar asignaciones
         base.Start();
     }
 
-    protected override void OnShoot()
+    public override void Shoot(Vector3 direction)
     {
-        // Lógica específica de disparo para BioGun
-        GameObject projectile = Instantiate(projectilePrefab, firePoint.position, firePoint.rotation);
+        if (!CanShoot() || firePoint == null || projectilePrefab == null) return;
+
+        GameObject projectile = Instantiate(projectilePrefab, firePoint.position, Quaternion.LookRotation(direction));
         Rigidbody rb = projectile.GetComponent<Rigidbody>();
+
         if (rb != null)
         {
-            rb.linearVelocity = firePoint.forward * projectileSpeed;
+            rb.linearVelocity = direction * projectileSpeed;
         }
-        else
-        {
-            Debug.LogError("Projectile does not have a Rigidbody component");
-        }
+
+        ammo--; // 🔹 Reducir la munición después de disparar
     }
 }

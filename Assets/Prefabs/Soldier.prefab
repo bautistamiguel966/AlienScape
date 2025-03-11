@@ -27,7 +27,7 @@ Transform:
   m_GameObject: {fileID: 2956134307032344262}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.031, y: 1.2, z: 0.72}
+  m_LocalPosition: {x: 0, y: 1.2, z: 0.7}
   m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -137,6 +137,7 @@ MonoBehaviour:
   projectilePrefab: {fileID: 5729988021132321219, guid: 05c44f9dd2c40374eb4c8bb478670a50, type: 3}
   firePointSoldier: {fileID: 5430786959515507799}
   projectileSpeed: 20
+  accuracy: 0.8
 --- !u!1 &8486432473831773900
 GameObject:
   m_ObjectHideFlags: 0
@@ -265,7 +266,7 @@ MonoBehaviour:
   stoppingDistance: 5
   soldierGun: {fileID: 7140734308659236214}
   fireRate: 1
-  accuracyError: 0.1
+  reloadDelay: 2
 --- !u!114 &2053250044821423396
 MonoBehaviour:
   m_ObjectHideFlags: 0

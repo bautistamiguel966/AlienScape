@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -20,6 +21,12 @@ public class PlayerController : MonoBehaviour
     public Transform cameraTransform;
     public CharacterController characterController;
 
+    [Header("UI Elements")]
+    public TextMeshProUGUI bioAmmoText;
+    public TextMeshProUGUI organAmmoText;
+
+    private PlayerInput _playerInput;
+
     private Vector2 _moveInput;
     private Vector2 _lookInput;
     private bool _isJumping;
@@ -27,17 +34,44 @@ public class PlayerController : MonoBehaviour
     private Vector3 _velocity;
     private float _cameraPitch = 0f;
 
+
+    private void Awake()
+    {
+        // 🔹 Ocultar y bloquear el cursor antes de que el juego comience
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+    }
+
     private void Start()
     {
         // Inicializar con el arma biológica
         _currentWeapon = bioGun;
         Debug.Log("Arma inicial: BioGun");
+
+        // 🔹 Ocultar y bloquear el cursor al iniciar el juego
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+
+        // 🔹 Obtener referencia al Input System
+        _playerInput = GetComponent<PlayerInput>();
+
+        // 🔹 Vincular la acción ToggleCursor con el método que desbloquea el cursor
+        _playerInput.actions["ToggleCursor"].performed += ctx => ToggleCursor();
+
+        UpdateAmmoUI(); // 🔹 Se actualiza la UI al inicio
     }
 
     private void Update()
     {
         HandleMovement();
         HandleRotation();
+
+        // 🔹 Asegurar que el cursor siga oculto al inicio
+        if (Time.timeSinceLevelLoad < 0.1f) // Solo en los primeros 0.1s del juego
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
     }
 
     private void HandleMovement()
@@ -61,6 +95,34 @@ public class PlayerController : MonoBehaviour
 
         characterController.Move((moveDirection + _velocity) * Time.deltaTime);
     }
+
+    private void ToggleCursor()
+    {
+        if (Cursor.lockState == CursorLockMode.Locked)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+        else
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
+    }
+
+private void UpdateAmmoUI()
+{
+    if (bioAmmoText != null && bioGun != null)
+    {
+        bioAmmoText.text = bioGun.ammo + " / " + bioGun.maxAmmo;
+    }
+
+    if (organAmmoText != null && organThrow != null)
+    {
+        organAmmoText.text = organThrow.ammo + " / " + organThrow.maxAmmo;
+    }
+}
+
 
     private void HandleRotation()
     {
@@ -108,13 +170,43 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    public void OnShoot(InputAction.CallbackContext context)
+public void OnShoot(InputAction.CallbackContext context)
+{
+    if (context.performed && _currentWeapon != null)
     {
-        if (context.performed && _currentWeapon != null)
+        Transform firePoint = null;
+
+        if (_currentWeapon is BioGun)
         {
-            _currentWeapon.Shoot();
+            firePoint = ((_currentWeapon as BioGun).firePointGun);
         }
+        else if (_currentWeapon is OrganThrow)
+        {
+            firePoint = ((_currentWeapon as OrganThrow).firePointOrgan);
+        }
+
+        if (firePoint == null) return;
+
+        Ray ray = new Ray(cameraTransform.position, cameraTransform.forward);
+        RaycastHit hit;
+        Vector3 shootDirection;
+
+        if (Physics.Raycast(ray, out hit, 100f))
+        {
+            shootDirection = (hit.point - firePoint.position).normalized;
+        }
+        else
+        {
+            shootDirection = cameraTransform.forward;
+        }
+
+        _currentWeapon.Shoot(shootDirection);
+        UpdateAmmoUI(); // 🔹 Se actualiza la UI después de disparar
     }
+}
+
+
+
 
     public void OnSwitchWeapon(InputAction.CallbackContext context)
     {
@@ -130,13 +222,15 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    public void OnReload(InputAction.CallbackContext context)
+public void OnReload(InputAction.CallbackContext context)
+{
+    if (context.performed && _currentWeapon != null)
     {
-        if (context.performed && _currentWeapon != null)
-        {
-            _currentWeapon.Reload();
-        }
+        _currentWeapon.Reload();
+        UpdateAmmoUI(); // 🔹 Se actualiza la UI después de recargar
     }
+}
+
 
     private void SwitchWeapon()
     {

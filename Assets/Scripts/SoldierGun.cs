@@ -2,45 +2,49 @@ using UnityEngine;
 
 public class SoldierGun : Weapon
 {
-    public Transform firePointSoldier; // Punto de disparo específico para SoldierGun
+    public Transform firePointSoldier; // Punto de disparo
     public float projectileSpeed = 20f; // Velocidad del proyectil
+    [Range(0f, 1f)] public float accuracy = 0.8f; // Probabilidad de acierto (0 = siempre falla, 1 = siempre acierta)
 
     protected override void Start()
     {
-        // Asignar el firePoint específico para SoldierGun
         firePoint = firePointSoldier;
-
-        // Llamar al Start de la clase base para verificar asignaciones
         base.Start();
     }
 
-    public void ShootTowards(Vector3 direction)
+    public override void Shoot(Vector3 direction)
     {
-        if (CanShoot())
-        {
-            if (firePoint == null || projectilePrefab == null)
-            {
-                Debug.LogError("FirePoint or ProjectilePrefab is not assigned in " + GetType().Name);
-                return;
-            }
+        if (PlayerHealth.isPlayerDead) return; // No dispara si el jugador murió
+        if (!CanShoot() || firePoint == null || projectilePrefab == null) return;
 
-            ammo--; // Reducir la munición
-            OnShootTowards(direction);
-        }
-    }
+        ammo--;
 
-    protected void OnShootTowards(Vector3 direction)
-    {
-        // Instanciar el proyectil y dispararlo en la dirección especificada
-        GameObject projectile = Instantiate(projectilePrefab, firePoint.position, Quaternion.LookRotation(direction));
+        Vector3 finalDirection = ApplyAccuracy(direction);
+
+        GameObject projectile = Instantiate(projectilePrefab, firePoint.position, Quaternion.LookRotation(finalDirection));
         Rigidbody rb = projectile.GetComponent<Rigidbody>();
+
         if (rb != null)
         {
-            rb.linearVelocity = direction * projectileSpeed;
+            rb.linearVelocity = finalDirection * projectileSpeed; // Usar velocity en vez de linearVelocity
         }
         else
         {
-            Debug.LogError("Projectile does not have a Rigidbody component");
+            Debug.LogError("El proyectil no tiene un Rigidbody.");
         }
+    }
+
+    private Vector3 ApplyAccuracy(Vector3 direction)
+    {
+        if (accuracy >= 1f) return direction.normalized;
+
+        bool shouldHit = Random.value <= accuracy; // Definir si el disparo es preciso
+
+        if (shouldHit) return direction.normalized;
+
+        // Si falla, aplicar desviación
+        float angleDeviation = Random.Range(-10f, 10f);
+        Quaternion rotation = Quaternion.Euler(angleDeviation, angleDeviation, 0f);
+        return rotation * direction;
     }
 }
