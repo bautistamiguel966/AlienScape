@@ -1,37 +1,73 @@
 using UnityEngine;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine.AI;
 
 public class SoldierSpawner : MonoBehaviour
 {
     public GameObject soldierPrefab;
-    public int numberOfSoldiers = 5; // Cantidad de Soldiers a generar
-    public Vector3 spawnAreaCenter; // Centro del área de spawn
-    public Vector3 spawnAreaSize; // Tamaño del área donde pueden aparecer
-    private Transform player; // Referencia al Player
+    public int numberOfSoldiers = 5;
+    private Transform player;
+    public Transform[] waypoints;
+    public float minSpawnDistance = 3f; // Distancia mínima entre soldados
+
+    private List<Vector3> usedPositions = new List<Vector3>();
 
     private void Start()
     {
+        if (waypoints.Length == 0)
+        {
+            Debug.LogError("⚠ No hay waypoints asignados en SoldierSpawner.");
+            return;
+        }
+
         player = GameObject.FindGameObjectWithTag("Player")?.transform;
         SpawnSoldiers();
     }
 
     private void SpawnSoldiers()
     {
-        for (int i = 0; i < numberOfSoldiers; i++)
+        int spawned = 0;
+        int attempts = 0;
+
+        while (spawned < numberOfSoldiers && attempts < numberOfSoldiers * 5)
         {
-            Vector3 randomPosition = spawnAreaCenter + new Vector3(
-                Random.Range(-spawnAreaSize.x / 2, spawnAreaSize.x / 2),
-                0, // Mantener en el suelo
-                Random.Range(-spawnAreaSize.z / 2, spawnAreaSize.z / 2)
-            );
+            Transform spawnPoint = waypoints[Random.Range(0, waypoints.Length)];
+            Vector3 spawnPosition = spawnPoint.position;
 
-            GameObject soldier = Instantiate(soldierPrefab, randomPosition, Quaternion.identity);
-
-            // 🔹 Asignar el `Player` al `Soldier`
-            SoldierController soldierController = soldier.GetComponent<SoldierController>();
-            if (soldierController != null && player != null)
+            if (!IsPositionOccupied(spawnPosition))
             {
-                soldierController.player = player;
+                if (NavMesh.SamplePosition(spawnPosition, out NavMeshHit hit, 5f, NavMesh.AllAreas))
+                {
+                    spawnPosition = hit.position;
+                }
+
+                GameObject soldier = Instantiate(soldierPrefab, spawnPosition, Quaternion.identity);
+                SoldierController soldierController = soldier.GetComponent<SoldierController>();
+
+                if (soldierController != null)
+                {
+                    soldierController.player = player;
+                    soldierController.waypoints = waypoints.OrderBy(x => Random.value).ToArray();
+                }
+
+                usedPositions.Add(spawnPosition);
+                spawned++;
+            }
+
+            attempts++;
+        }
+    }
+
+    private bool IsPositionOccupied(Vector3 position)
+    {
+        foreach (Vector3 usedPos in usedPositions)
+        {
+            if (Vector3.Distance(usedPos, position) < minSpawnDistance)
+            {
+                return true;
             }
         }
+        return false;
     }
 }

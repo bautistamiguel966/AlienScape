@@ -4,47 +4,45 @@ using System.Collections;
 
 public class SoldierController : MonoBehaviour
 {
-    public Transform player; // Referencia al jugador
-    public float detectionRange = 20f; // Rango de detección del jugador
-    public float shootingRange = 10f; // Rango de disparo
-    public float stoppingDistance = 5f; // Margen de alejamiento
-    public SoldierGun soldierGun; // Referencia al arma del Soldier
-    public float fireRate = 1f; // Tasa de disparo (disparos por segundo)
-    public float reloadDelay = 2f; // Tiempo de espera antes de recargar
+    public Transform player;
+    public float detectionRange = 20f;
+    public float shootingRange = 10f;
+    public float stoppingDistance = 5f;
+    public SoldierGun soldierGun;
+    public float fireRate = 1f;
+    public float reloadDelay = 2f;
+
+    [Header("Patrolling Settings")]
+    public Transform[] waypoints; 
+    private int currentWaypointIndex = 0;
+    private bool isChasingPlayer = false;
+    private bool isReloading = false;
 
     private NavMeshAgent navMeshAgent;
     private float nextFireTime;
-    private Collider playerCollider; // Colisionador del Player
-    private bool isReloading = false; // Indica si el Soldier está recargando
+    private Collider playerCollider;
 
     private void Start()
     {
         navMeshAgent = GetComponent<NavMeshAgent>();
         navMeshAgent.stoppingDistance = stoppingDistance;
+        navMeshAgent.autoBraking = false; // 🔹 Evita que el agente frene en cada waypoint
 
         if (player != null)
         {
             playerCollider = player.GetComponent<Collider>();
-
-            if (playerCollider == null)
-            {
-                Debug.LogError("El Player no tiene un componente Collider");
-            }
-        }
-        else
-        {
-            Debug.LogError("Player no está asignado en SoldierController");
         }
 
-        if (navMeshAgent == null || !navMeshAgent.isActiveAndEnabled)
+        if (waypoints.Length > 0)
         {
-            Debug.LogError("NavMeshAgent no está activo o no está asignado en SoldierController");
+            currentWaypointIndex = Random.Range(0, waypoints.Length); // 🔹 Empezar en un waypoint aleatorio
+            GoToNextWaypoint();
         }
     }
 
     private void Update()
     {
-        if (player == null || navMeshAgent == null || !navMeshAgent.isActiveAndEnabled || playerCollider == null)
+        if (player == null || navMeshAgent == null || !navMeshAgent.isActiveAndEnabled)
         {
             return;
         }
@@ -53,32 +51,74 @@ public class SoldierController : MonoBehaviour
 
         if (distanceToPlayer <= detectionRange)
         {
+            if (!isChasingPlayer)
+            {
+                isChasingPlayer = true;
+                Debug.Log($"{gameObject.name}: Persiguiendo al jugador.");
+            }
+
             navMeshAgent.SetDestination(player.position);
 
             if (distanceToPlayer <= shootingRange)
             {
-                // 🔹 Asegurar que el Soldier apunta exactamente al Player
-                Vector3 targetPoint = playerCollider.bounds.center; // Centro del collider del Player
-                Vector3 shootDirection = (targetPoint - soldierGun.firePointSoldier.position).normalized;
+                ShootAtPlayer();
+            }
+        }
+        else
+        {
+            if (isChasingPlayer)
+            {
+                isChasingPlayer = false;
+                Debug.Log($"{gameObject.name}: Perdió al jugador. Volviendo a patrullar.");
+                GoToNextWaypoint();
+            }
 
-                // 🔹 Soldier mira al Player
-                Quaternion lookRotation = Quaternion.LookRotation(shootDirection);
-                transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 5f);
+            Patrol();
+        }
+    }
 
-                Debug.DrawRay(soldierGun.firePointSoldier.position, shootDirection * 10f, Color.green); // Línea de depuración
+    private void Patrol()
+    {
+        if (waypoints.Length == 0 || isChasingPlayer)
+        {
+            return;
+        }
 
-                if (soldierGun != null && Time.time >= nextFireTime && !isReloading)
-                {
-                    if (soldierGun.ammo > 0)
-                    {
-                        soldierGun.Shoot(shootDirection); // 🔹 Ahora dispara correctamente
-                        nextFireTime = Time.time + 1f / fireRate;
-                    }
-                    else
-                    {
-                        StartCoroutine(ReloadAfterDelay());
-                    }
-                }
+        if (!navMeshAgent.pathPending && navMeshAgent.remainingDistance < 0.5f)
+        {
+            GoToNextWaypoint();
+        }
+    }
+
+    private void GoToNextWaypoint()
+    {
+        if (waypoints.Length == 0 || isChasingPlayer)
+        {
+            return;
+        }
+
+        currentWaypointIndex = (currentWaypointIndex + 1) % waypoints.Length; // 🔹 Ciclo infinito de waypoints
+        navMeshAgent.SetDestination(waypoints[currentWaypointIndex].position);
+        Debug.Log($"{gameObject.name}: Moviéndose al waypoint {waypoints[currentWaypointIndex].name}");
+    }
+
+    private void ShootAtPlayer()
+    {
+        Vector3 targetPoint = playerCollider.bounds.center;
+        Vector3 shootDirection = (targetPoint - soldierGun.firePoint.position).normalized;
+
+        transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(shootDirection), Time.deltaTime * 5f);
+
+        if (soldierGun != null && Time.time >= nextFireTime && !isReloading)
+        {
+            if (soldierGun.ammo > 0)
+            {
+                soldierGun.Shoot(shootDirection);
+                nextFireTime = Time.time + 1f / fireRate;
+            }
+            else
+            {
+                StartCoroutine(ReloadAfterDelay());
             }
         }
     }
@@ -89,16 +129,5 @@ public class SoldierController : MonoBehaviour
         yield return new WaitForSeconds(reloadDelay);
         soldierGun.Reload();
         isReloading = false;
-        navMeshAgent.isStopped = false;
-    }
-
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, detectionRange);
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, shootingRange);
-        Gizmos.color = Color.blue;
-        Gizmos.DrawWireSphere(transform.position, stoppingDistance);
     }
 }

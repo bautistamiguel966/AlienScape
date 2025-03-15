@@ -2,37 +2,24 @@ using UnityEngine;
 
 public abstract class Weapon : MonoBehaviour
 {
-    protected Transform firePoint; // Punto de disparo
-    public int ammo = 15; // Munición actual
-    public int maxAmmo = 15; // Munición máxima
-    public float cooldown = 0.5f; // Tiempo de espera entre disparos
-    public GameObject projectilePrefab; // Prefab del proyectil
-    private float _lastShotTime; // Última vez que se disparó
+    public Transform firePoint; // Punto de disparo
+    public int ammo = 15;
+    public int maxAmmo = 15;
+    public float cooldown = 0.5f;
+    public GameObject projectilePrefab;
 
-    protected virtual void Start()
+    protected float lastShotTime;
+
+    public abstract void Shoot(Vector3 direction); // 🔹 Método abstracto obligatorio
+
+    public virtual bool CanShoot()
     {
-        if (firePoint == null)
-        {
-            Debug.LogError("FirePoint no está asignado en " + GetType().Name);
-        }
-
-        if (projectilePrefab == null)
-        {
-            Debug.LogError("ProjectilePrefab no está asignado en " + GetType().Name);
-        }
+        return ammo > 0 && Time.time > lastShotTime + cooldown;
     }
 
-    public bool CanShoot()
-    {
-        return ammo > 0 && Time.time > _lastShotTime + cooldown;
-    }
-
-    public void Reload()
+    public virtual void Reload()
     {
         ammo = maxAmmo;
-        Debug.Log("Munición recargada: " + ammo);
+        Debug.Log($"{gameObject.name}: Munición recargada ({ammo}/{maxAmmo})");
     }
-
-    // 🔹 Hacemos `Shoot(Vector3)` obligatorio para todas las armas
-    public abstract void Shoot(Vector3 direction);
 }

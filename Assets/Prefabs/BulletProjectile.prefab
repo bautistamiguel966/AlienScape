@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 2053633792368668399}
   - component: {fileID: 2695152876618501661}
   m_Layer: 0
-  m_Name: BioProjectile
+  m_Name: BulletProjectile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -104,7 +104,7 @@ SphereCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -146,9 +146,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 2299201648968986029}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6433aa7e1e6429a4890bb05c0121be6e, type: 3}
+  m_Script: {fileID: 11500000, guid: dc58f11dc9d4a5849bd4126ffeb29776, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 15
+  damage: 10
   speed: 20
   lifetime: 3
+  shooterTag: 
+  playerMaterial: {fileID: 2100000, guid: 3f856587040ff214690de8332d49317c, type: 2}
+  soldierMaterial: {fileID: 2100000, guid: caccac9050d56c5458d56785729de985, type: 2}

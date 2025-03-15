@@ -5,8 +5,8 @@ using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
 {
     [Header("Movement Settings")]
-    public float walkSpeed = 5f;
-    public float sprintSpeed = 8f;
+    public float walkSpeed = 8f;
+    public float sprintSpeed = 10f;
     public float jumpForce = 1.5f; // Ajustado para un salto más controlado
     public float gravity = -25f;   // Gravedad base
     public float gravityAcceleration = 2f; // Aceleración de la gravedad
@@ -74,6 +74,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+
     private void HandleMovement()
     {
         float speed = _isSprinting ? sprintSpeed : walkSpeed;
@@ -110,18 +111,18 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-private void UpdateAmmoUI()
-{
-    if (bioAmmoText != null && bioGun != null)
+    private void UpdateAmmoUI()
     {
-        bioAmmoText.text = bioGun.ammo + " / " + bioGun.maxAmmo;
-    }
+        if (bioAmmoText != null && bioGun != null)
+        {
+            bioAmmoText.text = bioGun.ammo + " / " + bioGun.maxAmmo;
+        }
 
-    if (organAmmoText != null && organThrow != null)
-    {
-        organAmmoText.text = organThrow.ammo + " / " + organThrow.maxAmmo;
+        if (organAmmoText != null && organThrow != null)
+        {
+            organAmmoText.text = organThrow.ammo + " / " + organThrow.maxAmmo;
+        }
     }
-}
 
 
     private void HandleRotation()
@@ -170,40 +171,40 @@ private void UpdateAmmoUI()
         }
     }
 
-public void OnShoot(InputAction.CallbackContext context)
-{
-    if (context.performed && _currentWeapon != null)
+    public void OnShoot(InputAction.CallbackContext context)
     {
-        Transform firePoint = null;
-
-        if (_currentWeapon is BioGun)
+        if (context.performed && _currentWeapon != null)
         {
-            firePoint = ((_currentWeapon as BioGun).firePointGun);
-        }
-        else if (_currentWeapon is OrganThrow)
-        {
-            firePoint = ((_currentWeapon as OrganThrow).firePointOrgan);
-        }
+            Transform firePoint = null;
 
-        if (firePoint == null) return;
+            if (_currentWeapon is BioGun)
+            {
+                firePoint = ((_currentWeapon as BioGun).firePoint);
+            }
+            else if (_currentWeapon is OrganThrow)
+            {
+                firePoint = ((_currentWeapon as OrganThrow).firePoint);
+            }
 
-        Ray ray = new Ray(cameraTransform.position, cameraTransform.forward);
-        RaycastHit hit;
-        Vector3 shootDirection;
+            if (firePoint == null) return;
 
-        if (Physics.Raycast(ray, out hit, 100f))
-        {
-            shootDirection = (hit.point - firePoint.position).normalized;
+            Ray ray = new Ray(cameraTransform.position, cameraTransform.forward);
+            RaycastHit hit;
+            Vector3 shootDirection;
+
+            if (Physics.Raycast(ray, out hit, 100f))
+            {
+                shootDirection = (hit.point - firePoint.position).normalized;
+            }
+            else
+            {
+                shootDirection = cameraTransform.forward;
+            }
+
+            _currentWeapon.Shoot(shootDirection);
+            UpdateAmmoUI(); // 🔹 Se actualiza la UI después de disparar
         }
-        else
-        {
-            shootDirection = cameraTransform.forward;
-        }
-
-        _currentWeapon.Shoot(shootDirection);
-        UpdateAmmoUI(); // 🔹 Se actualiza la UI después de disparar
     }
-}
 
 
 
@@ -222,14 +223,14 @@ public void OnShoot(InputAction.CallbackContext context)
         }
     }
 
-public void OnReload(InputAction.CallbackContext context)
-{
-    if (context.performed && _currentWeapon != null)
+    public void OnReload(InputAction.CallbackContext context)
     {
-        _currentWeapon.Reload();
-        UpdateAmmoUI(); // 🔹 Se actualiza la UI después de recargar
+        if (context.performed && _currentWeapon != null)
+        {
+            _currentWeapon.Reload();
+            UpdateAmmoUI(); // 🔹 Se actualiza la UI después de recargar
+        }
     }
-}
 
 
     private void SwitchWeapon()
@@ -245,4 +246,14 @@ public void OnReload(InputAction.CallbackContext context)
             Debug.Log("Cambiado a arma biológica");
         }
     }
+
+
+    public void Win()
+    {
+        Debug.Log("Jugador ha ganado");
+
+        // 🔹 Notificar a `GameManager`
+        GameManager.Instance.ShowWinScreen();
+    }
+
 }

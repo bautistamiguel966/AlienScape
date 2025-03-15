@@ -3,44 +3,84 @@ using UnityEngine;
 public class OrganProjectile : MonoBehaviour
 {
     public float explosionRadius = 5f; // Radio de la explosión
-    public int explosionDamage = 20; // Daño de la explosión
-    public GameObject explosionEffect; // Efecto visual de la explosión (partículas, etc.)
+    public int maxDamage = 50; // Daño máximo en el centro de la explosión
+    public int minDamage = 10; // Daño mínimo en el borde del radio
+    public GameObject explosionEffect; // Efecto visual de la explosión
+
+    private Rigidbody rb;
+    private bool hasExploded = false; // Para evitar múltiples explosiones
+
+    private void Start()
+    {
+        rb = GetComponent<Rigidbody>();
+
+        // 🔹 Asegurar que el Rigidbody tenga gravedad activada
+        if (rb != null)
+        {
+            rb.isKinematic = false; // Ahora cae con la gravedad
+            rb.useGravity = true; // Asegurar que la gravedad está activada
+        }
+    }
 
     private void OnCollisionEnter(Collision collision)
     {
-        // Lógica de explosión
-        Explode();
+        // 🔹 Si ya explotó, ignorar
+        if (hasExploded) return;
 
-        // Destruir el proyectil después de la explosión
-        Destroy(gameObject);
+        // 🔹 Solo explotar si choca contra el suelo o un enemigo
+        if (collision.gameObject.CompareTag("Ground") || collision.gameObject.CompareTag("Player") || collision.gameObject.CompareTag("Soldier"))
+        {
+            Explode();
+        }
     }
 
     private void Explode()
     {
-        // Mostrar el efecto visual de la explosión
+        hasExploded = true;
+
+        // 🔹 Mostrar efecto de explosión
         if (explosionEffect != null)
         {
-            Instantiate(explosionEffect, transform.position, transform.rotation);
+            Instantiate(explosionEffect, transform.position, Quaternion.identity);
         }
 
-        // Aplicar daño a todos los objetos dentro del radio de explosión
+        // 🔹 Aplicar daño en área
         Collider[] colliders = Physics.OverlapSphere(transform.position, explosionRadius);
         foreach (Collider hitCollider in colliders)
         {
-            // Verificar si el objeto tiene un componente de salud (como PlayerHealth)
+            float distance = Vector3.Distance(transform.position, hitCollider.transform.position);
+            int damage = CalculateDamage(distance);
+
+            // 🔹 Aplicar daño a Player
             PlayerHealth playerHealth = hitCollider.GetComponent<PlayerHealth>();
             if (playerHealth != null)
             {
-                playerHealth.TakeDamage(explosionDamage);
+                playerHealth.TakeDamage(damage);
+                Debug.Log($"🔥 Player recibió {damage} de daño por explosión.");
             }
 
-            // Aquí podrías agregar lógica para dañar otros objetos, como enemigos o estructuras
+            // 🔹 Aplicar daño a Soldiers
+            SoldierHealth soldierHealth = hitCollider.GetComponent<SoldierHealth>();
+            if (soldierHealth != null)
+            {
+                soldierHealth.TakeDamage(damage);
+                Debug.Log($"💥 Soldier recibió {damage} de daño por explosión.");
+            }
         }
+
+        // 🔹 Destruir el proyectil después de explotar
+        Destroy(gameObject);
+    }
+
+    private int CalculateDamage(float distance)
+    {
+        if (distance <= 1f) return maxDamage;
+        float normalizedDistance = distance / explosionRadius;
+        return Mathf.RoundToInt(Mathf.Lerp(maxDamage, minDamage, normalizedDistance));
     }
 
     private void OnDrawGizmosSelected()
     {
-        // Dibujar el radio de explosión en el editor (solo para debug)
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, explosionRadius);
     }

@@ -11,8 +11,6 @@ public class PlayerHealth : MonoBehaviour
     public Slider healthBar; // Referencia a la barra de vida
     public TextMeshProUGUI healthText; // Referencia al texto de la vida
 
-
-    public GameObject deathScreenUI; // UI de mensaje de muerte
     public Transform playerModel; // Referencia al modelo del Player
     public static bool isPlayerDead = false;
 
@@ -25,11 +23,6 @@ public class PlayerHealth : MonoBehaviour
         currentHealth = maxHealth;
         characterController = GetComponent<CharacterController>();
         playerController = GetComponent<PlayerController>();
-
-        if (deathScreenUI != null)
-        {
-            deathScreenUI.SetActive(false); // Asegurar que el mensaje de muerte está oculto al inicio
-        }
 
         if (healthBar != null)
         {
@@ -82,35 +75,8 @@ public class PlayerHealth : MonoBehaviour
             Debug.Log("Deshabilitado CharacterController");
         }
 
-        // 🔹 Mostrar mensaje de muerte
-        if (deathScreenUI != null)
-        {
-            deathScreenUI.SetActive(true);
-            Debug.Log("Mensaje de muerte activado.");
-        }
-        else
-        {
-            Debug.LogWarning("⚠ deathScreenUI no está asignado.");
-        }
-
-        // 🔹 Reiniciar escena después de 3 segundos
-        Invoke("RestartScene", 3f);
+        GameManager.Instance.ShowDeathScreen();
     }
 
 
-
-    private void RestartScene()
-    {
-        // 🔹 TRUCO para limpiar la consola al reiniciar
-        Application.logMessageReceived += SuppressLogs;
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-        Invoke(nameof(EnableLogs), 0.1f); // Reactivar logs después de reiniciar
-    }
-
-    private void SuppressLogs(string condition, string stackTrace, LogType type) { }
-
-    private void EnableLogs()
-    {
-        Application.logMessageReceived -= SuppressLogs;
-    }
 }
