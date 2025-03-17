@@ -599,7 +599,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1afddc7dbbc969b42ae19629590286f4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  soldierPrefab: {fileID: 8486432473831773900, guid: b795f26843d20154e9f1f19261929229, type: 3}
+  soldierPrefab: {fileID: 7249753753337045759, guid: 46f3c8bcbdc119bceb395e1e8610fdfd, type: 3}
   numberOfSoldiers: 5
   waypoints:
   - {fileID: 674624643}
@@ -793,6 +793,11 @@ Transform:
   - {fileID: 884093488}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &353110876 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3986748925046244545, guid: 311b868b0f894914c8154d678f4e94ef, type: 3}
+  m_PrefabInstance: {fileID: 1004605949642776885}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &566406851
 GameObject:
   m_ObjectHideFlags: 0
@@ -1121,6 +1126,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b2b6bfc99708ae049a6a458f21c08907, type: 3}
+--- !u!1 &1079554737 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5567383116821101247, guid: 311b868b0f894914c8154d678f4e94ef, type: 3}
+  m_PrefabInstance: {fileID: 1004605949642776885}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1108595860
 GameObject:
   m_ObjectHideFlags: 0
@@ -2563,6 +2573,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1706002753}
   m_CullTransparentMesh: 1
+--- !u!1 &1882624839 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7866402525297662626, guid: 311b868b0f894914c8154d678f4e94ef, type: 3}
+  m_PrefabInstance: {fileID: 1004605949642776885}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1896714179
 GameObject:
   m_ObjectHideFlags: 0
@@ -2654,6 +2669,11 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
+--- !u!1 &1980067728 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 9035868093867088967, guid: 311b868b0f894914c8154d678f4e94ef, type: 3}
+  m_PrefabInstance: {fileID: 1004605949642776885}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &2100652642
 GameObject:
   m_ObjectHideFlags: 0
@@ -3099,6 +3119,22 @@ PrefabInstance:
       propertyPath: deathScreenUI
       value: 
       objectReference: {fileID: 1629617974}
+    - target: {fileID: 9105090111580583929, guid: 311b868b0f894914c8154d678f4e94ef, type: 3}
+      propertyPath: eyes
+      value: 
+      objectReference: {fileID: 353110876}
+    - target: {fileID: 9105090111580583929, guid: 311b868b0f894914c8154d678f4e94ef, type: 3}
+      propertyPath: hair
+      value: 
+      objectReference: {fileID: 1079554737}
+    - target: {fileID: 9105090111580583929, guid: 311b868b0f894914c8154d678f4e94ef, type: 3}
+      propertyPath: leftear
+      value: 
+      objectReference: {fileID: 1882624839}
+    - target: {fileID: 9105090111580583929, guid: 311b868b0f894914c8154d678f4e94ef, type: 3}
+      propertyPath: rightear
+      value: 
+      objectReference: {fileID: 1980067728}
     - target: {fileID: 9105090111580583929, guid: 311b868b0f894914c8154d678f4e94ef, type: 3}
       propertyPath: walkSpeed
       value: 20

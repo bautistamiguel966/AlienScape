@@ -37,6 +37,12 @@ public class PlayerController : MonoBehaviour
     // Animaciones
     Animator anim;
 
+    public GameObject head; // El objeto de la cabeza (si está separado)
+    public GameObject eyes; // El objeto de los ojos
+    public GameObject hair; // El objeto del cabello
+
+    public GameObject leftear; // El objeto de los ojos
+    public GameObject rightear; // El objeto del cabello
 
 
     private void Awake()
@@ -48,6 +54,11 @@ public class PlayerController : MonoBehaviour
 
     private void Start()
     {
+ 
+        eyes.SetActive(false);
+        hair.SetActive(false);
+        leftear.SetActive(false);
+        rightear.SetActive(false);
         // Inicializar con el arma biológica
         _currentWeapon = bioGun;
         Debug.Log("Arma inicial: BioGun");
