@@ -152,6 +152,7 @@ GameObject:
   - component: {fileID: 2171003346432391990}
   - component: {fileID: 2045691089057858303}
   - component: {fileID: -2593323525345060529}
+  - component: {fileID: 2925345930491404870}
   m_Layer: 7
   m_Name: police_officer
   m_TagString: Soldier
@@ -201,7 +202,7 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 0
+  m_Constraints: 112
   m_CollisionDetection: 0
 --- !u!136 &7946255537553626501
 CapsuleCollider:
@@ -223,9 +224,9 @@ CapsuleCollider:
   m_Enabled: 1
   serializedVersion: 2
   m_Radius: 0.5
-  m_Height: 3.236633
+  m_Height: 3.2
   m_Direction: 1
-  m_Center: {x: 0, y: 1.5690337, z: 0}
+  m_Center: {x: 0, y: 1.7, z: 0}
 --- !u!195 &766195029039660330
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -260,7 +261,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 49440308b6b5dba4285a355e42562a89, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  player: {fileID: 0}
+  player: {fileID: 5964759838077702380}
   detectionRange: 20
   shootingRange: 10
   stoppingDistance: 5
@@ -303,6 +304,24 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &2925345930491404870
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7249753753337045759}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53dcbcbe0d9c9524181f676bf326330a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  firePoint: {fileID: 0}
+  ammo: 15
+  maxAmmo: 15
+  cooldown: 0.5
+  projectilePrefab: {fileID: 0}
+  projectileSpeed: 20
 --- !u!1001 &1710701240129354742
 PrefabInstance:
   m_ObjectHideFlags: 0
