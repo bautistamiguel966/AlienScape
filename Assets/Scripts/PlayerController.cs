@@ -34,6 +34,10 @@ public class PlayerController : MonoBehaviour
     private Vector3 _velocity;
     private float _cameraPitch = 0f;
 
+    // Animaciones
+    Animator anim;
+
+
 
     private void Awake()
     {
@@ -59,6 +63,9 @@ public class PlayerController : MonoBehaviour
         _playerInput.actions["ToggleCursor"].performed += ctx => ToggleCursor();
 
         UpdateAmmoUI(); // 🔹 Se actualiza la UI al inicio
+
+        // 🔹 obtener animator del hijo
+        anim = GetComponentInChildren<Animator>();
     }
 
     private void Update()
@@ -77,7 +84,15 @@ public class PlayerController : MonoBehaviour
 
     private void HandleMovement()
     {
-        float speed = _isSprinting ? sprintSpeed : walkSpeed;
+        float speed ;
+        if (_isSprinting){
+            anim.SetFloat("MovementA", 1f); //Animacion estar
+            speed =sprintSpeed;
+        }else{
+
+            speed = walkSpeed;
+        }
+
         Vector3 moveDirection = (transform.forward * _moveInput.y + transform.right * _moveInput.x) * speed;
 
         if (characterController.isGrounded)
@@ -140,6 +155,13 @@ public class PlayerController : MonoBehaviour
     public void OnMove(InputAction.CallbackContext context)
     {
         _moveInput = context.ReadValue<Vector2>();
+
+        if (_moveInput == Vector2.zero)
+        {
+            anim.SetFloat("MovementA", 0f);
+        }else{
+            anim.SetFloat("MovementA", 0.4f);
+        }
     }
 
     public void OnLook(InputAction.CallbackContext context)
@@ -149,17 +171,23 @@ public class PlayerController : MonoBehaviour
 
     public void OnJump(InputAction.CallbackContext context)
     {
-        if (context.performed && characterController.isGrounded)
+
+        if (context.performed && characterController.isGrounded && !_isJumping)
         {
+            anim.SetTrigger("Jump");
             _isJumping = true;
+            
         }
-        else if (context.canceled)
+   
+
+        if(!characterController.isGrounded)
         {
+            anim.SetTrigger("Landen");
             _isJumping = false;
         }
     }
 
-    public void OnSprint(InputAction.CallbackContext context)
+     public void OnSprint(InputAction.CallbackContext context)
     {
         if (context.performed)
         {
@@ -168,6 +196,14 @@ public class PlayerController : MonoBehaviour
         else if (context.canceled)
         {
             _isSprinting = false;
+            if (_moveInput != Vector2.zero) // Si se está moviendo pero no corriendo
+            {
+                anim.SetFloat("MovementA", 0.3f); // Animación de caminar
+            }
+            else
+            {
+                anim.SetFloat("MovementA", 0f); // Animación de estar en reposo
+            }
         }
     }
 
