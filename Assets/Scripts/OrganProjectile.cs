@@ -2,33 +2,28 @@ using UnityEngine;
 
 public class OrganProjectile : MonoBehaviour
 {
-    public float explosionRadius = 5f; // Radio de la explosión
-    public int maxDamage = 50; // Daño máximo en el centro de la explosión
-    public int minDamage = 10; // Daño mínimo en el borde del radio
-    public GameObject explosionEffect; // Efecto visual de la explosión
+    public float explosionRadius = 5f;
+    public int maxDamage = 50;
+    public int minDamage = 10;
+    public GameObject explosionEffect;
+    public float explosionEffectDuration = 2f; // ⏳ Duración del efecto de explosión
+    public AudioClip explosionSound; // 🔹 Sonido de la explosión
 
-    private Rigidbody rb;
-    private bool hasExploded = false; // Para evitar múltiples explosiones
+    private bool hasExploded = false;
 
     private void Start()
     {
-        rb = GetComponent<Rigidbody>();
-
-        // 🔹 Asegurar que el Rigidbody tenga gravedad activada
+        Rigidbody rb = GetComponent<Rigidbody>();
         if (rb != null)
         {
-            rb.isKinematic = false; // Ahora cae con la gravedad
-            rb.useGravity = true; // Asegurar que la gravedad está activada
+            rb.isKinematic = false;
+            rb.useGravity = true;
         }
     }
 
-    private void OnCollisionEnter(Collision collision)
+    private void OnTriggerEnter(Collider other)
     {
-        // 🔹 Si ya explotó, ignorar
-        if (hasExploded) return;
-
-        // 🔹 Solo explotar si choca contra el suelo o un enemigo
-        if (collision.gameObject.CompareTag("Ground") || collision.gameObject.CompareTag("Player") || collision.gameObject.CompareTag("Soldier"))
+        if (!hasExploded)
         {
             Explode();
         }
@@ -38,10 +33,25 @@ public class OrganProjectile : MonoBehaviour
     {
         hasExploded = true;
 
-        // 🔹 Mostrar efecto de explosión
+        // 🔹 Instanciar efecto de explosión y destruirlo tras un tiempo
         if (explosionEffect != null)
         {
-            Instantiate(explosionEffect, transform.position, Quaternion.identity);
+            GameObject explosionInstance = Instantiate(explosionEffect, transform.position, Quaternion.identity);
+            Destroy(explosionInstance, explosionEffectDuration); // 🔹 Destruir el efecto tras 'explosionEffectDuration' segundos
+        }
+
+        // 🔹 Crear un objeto temporal para reproducir el sonido
+        if (explosionSound != null)
+        {
+            GameObject soundObject = new GameObject("ExplosionSound");
+            AudioSource tempAudioSource = soundObject.AddComponent<AudioSource>();
+            tempAudioSource.clip = explosionSound;
+            tempAudioSource.Play();
+            Destroy(soundObject, explosionSound.length);
+        }
+        else
+        {
+            Debug.LogWarning("⚠ No hay sonido de explosión asignado.");
         }
 
         // 🔹 Aplicar daño en área
@@ -51,25 +61,28 @@ public class OrganProjectile : MonoBehaviour
             float distance = Vector3.Distance(transform.position, hitCollider.transform.position);
             int damage = CalculateDamage(distance);
 
-            // 🔹 Aplicar daño a Player
-            PlayerHealth playerHealth = hitCollider.GetComponent<PlayerHealth>();
-            if (playerHealth != null)
+            if (hitCollider.CompareTag("Player"))
             {
-                playerHealth.TakeDamage(damage);
-                Debug.Log($"🔥 Player recibió {damage} de daño por explosión.");
+                PlayerHealth playerHealth = hitCollider.GetComponent<PlayerHealth>();
+                if (playerHealth != null)
+                {
+                    playerHealth.TakeDamage(damage);
+                    Debug.Log($"🔥 Player recibió {damage} de daño por explosión.");
+                }
             }
 
-            // 🔹 Aplicar daño a Soldiers
-            SoldierHealth soldierHealth = hitCollider.GetComponent<SoldierHealth>();
-            if (soldierHealth != null)
+            if (hitCollider.CompareTag("Soldier"))
             {
-                soldierHealth.TakeDamage(damage);
-                Debug.Log($"💥 Soldier recibió {damage} de daño por explosión.");
+                SoldierHealth soldierHealth = hitCollider.GetComponent<SoldierHealth>();
+                if (soldierHealth != null)
+                {
+                    soldierHealth.TakeDamage(damage);
+                    Debug.Log($"💥 Soldier recibió {damage} de daño por explosión.");
+                }
             }
         }
 
-        // 🔹 Destruir el proyectil después de explotar
-        Destroy(gameObject);
+        Destroy(gameObject); // 🔹 Destruir el proyectil tras la explosión
     }
 
     private int CalculateDamage(float distance)
@@ -77,11 +90,5 @@ public class OrganProjectile : MonoBehaviour
         if (distance <= 1f) return maxDamage;
         float normalizedDistance = distance / explosionRadius;
         return Mathf.RoundToInt(Mathf.Lerp(maxDamage, minDamage, normalizedDistance));
-    }
-
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, explosionRadius);
     }
 }

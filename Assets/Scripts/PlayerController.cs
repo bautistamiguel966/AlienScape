@@ -1,5 +1,5 @@
-using TMPro;
 using UnityEngine;
+using TMPro;
 using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
@@ -7,9 +7,9 @@ public class PlayerController : MonoBehaviour
     [Header("Movement Settings")]
     public float walkSpeed = 8f;
     public float sprintSpeed = 10f;
-    public float jumpForce = 1.5f; // Ajustado para un salto más controlado
-    public float gravity = -25f;   // Gravedad base
-    public float gravityAcceleration = 2f; // Aceleración de la gravedad
+    public float jumpForce = 1.5f;
+    public float gravity = -25f;
+    public float gravityAcceleration = 2f;
     public float lookSensitivity = 2f;
 
     [Header("Weapons")]
@@ -25,55 +25,54 @@ public class PlayerController : MonoBehaviour
     public TextMeshProUGUI bioAmmoText;
     public TextMeshProUGUI organAmmoText;
 
-    private PlayerInput _playerInput;
+    [Header("Audio")]
+    public AudioSource audioSource;
+    public AudioClip[] walkSounds; // Array de sonidos de caminar
+    public AudioClip[] sprintSounds; // Array de sonidos de correr
+    public float walkStepInterval = 0.6f; // Intervalo entre pasos caminando
+    public float sprintStepInterval = 0.4f; // Intervalo entre pasos corriendo
 
+    private PlayerInput _playerInput;
     private Vector2 _moveInput;
     private Vector2 _lookInput;
     private bool _isJumping;
     private bool _isSprinting;
     private Vector3 _velocity;
     private float _cameraPitch = 0f;
-
+    private float nextFootstepTime = 0f;
 
     private void Awake()
     {
-        // 🔹 Ocultar y bloquear el cursor antes de que el juego comience
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
 
     private void Start()
     {
-        // Inicializar con el arma biológica
         _currentWeapon = bioGun;
         Debug.Log("Arma inicial: BioGun");
 
-        // 🔹 Ocultar y bloquear el cursor al iniciar el juego
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
-        // 🔹 Obtener referencia al Input System
         _playerInput = GetComponent<PlayerInput>();
-
-        // 🔹 Vincular la acción ToggleCursor con el método que desbloquea el cursor
         _playerInput.actions["ToggleCursor"].performed += ctx => ToggleCursor();
 
-        UpdateAmmoUI(); // 🔹 Se actualiza la UI al inicio
+        UpdateAmmoUI();
     }
 
     private void Update()
     {
         HandleMovement();
         HandleRotation();
+        HandleFootsteps(); // 🔹 Reproducir sonido de pasos según el estado del jugador
 
-        // 🔹 Asegurar que el cursor siga oculto al inicio
-        if (Time.timeSinceLevelLoad < 0.1f) // Solo en los primeros 0.1s del juego
+        if (Time.timeSinceLevelLoad < 0.1f)
         {
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }
     }
-
 
     private void HandleMovement()
     {
@@ -82,19 +81,37 @@ public class PlayerController : MonoBehaviour
 
         if (characterController.isGrounded)
         {
-            _velocity.y = -2f; // Pequeña fuerza hacia abajo para mantener al jugador pegado al suelo
+            _velocity.y = -2f;
             if (_isJumping)
             {
-                _velocity.y = Mathf.Sqrt(jumpForce * -2f * gravity); // Aplicar la fuerza del salto
+                _velocity.y = Mathf.Sqrt(jumpForce * -2f * gravity);
             }
         }
         else
         {
-            // Aplicar aceleración de la gravedad
             _velocity.y += gravity * gravityAcceleration * Time.deltaTime;
         }
 
         characterController.Move((moveDirection + _velocity) * Time.deltaTime);
+    }
+
+    private void HandleFootsteps()
+    {
+        if (!characterController.isGrounded || _moveInput.magnitude == 0) return;
+
+        float stepInterval = _isSprinting ? sprintStepInterval : walkStepInterval;
+        AudioClip[] selectedSounds = _isSprinting ? sprintSounds : walkSounds;
+
+        if (Time.time >= nextFootstepTime)
+        {
+            nextFootstepTime = Time.time + stepInterval;
+
+            if (selectedSounds.Length > 0 && audioSource != null)
+            {
+                AudioClip stepSound = selectedSounds[Random.Range(0, selectedSounds.Length)];
+                audioSource.PlayOneShot(stepSound);
+            }
+        }
     }
 
     private void ToggleCursor()
@@ -123,7 +140,6 @@ public class PlayerController : MonoBehaviour
             organAmmoText.text = organThrow.ammo + " / " + organThrow.maxAmmo;
         }
     }
-
 
     private void HandleRotation()
     {
@@ -161,61 +177,32 @@ public class PlayerController : MonoBehaviour
 
     public void OnSprint(InputAction.CallbackContext context)
     {
-        if (context.performed)
-        {
-            _isSprinting = true;
-        }
-        else if (context.canceled)
-        {
-            _isSprinting = false;
-        }
+        _isSprinting = context.performed;
     }
 
     public void OnShoot(InputAction.CallbackContext context)
     {
         if (context.performed && _currentWeapon != null)
         {
-            Transform firePoint = null;
-
-            if (_currentWeapon is BioGun)
-            {
-                firePoint = ((_currentWeapon as BioGun).firePoint);
-            }
-            else if (_currentWeapon is OrganThrow)
-            {
-                firePoint = ((_currentWeapon as OrganThrow).firePoint);
-            }
-
+            Transform firePoint = _currentWeapon.firePoint;
             if (firePoint == null) return;
 
             Ray ray = new Ray(cameraTransform.position, cameraTransform.forward);
             RaycastHit hit;
-            Vector3 shootDirection;
-
-            if (Physics.Raycast(ray, out hit, 100f))
-            {
-                shootDirection = (hit.point - firePoint.position).normalized;
-            }
-            else
-            {
-                shootDirection = cameraTransform.forward;
-            }
+            Vector3 shootDirection = Physics.Raycast(ray, out hit, 100f)
+                ? (hit.point - firePoint.position).normalized
+                : cameraTransform.forward;
 
             _currentWeapon.Shoot(shootDirection);
-            UpdateAmmoUI(); // 🔹 Se actualiza la UI después de disparar
+            UpdateAmmoUI();
         }
     }
-
-
-
 
     public void OnSwitchWeapon(InputAction.CallbackContext context)
     {
         if (context.performed)
         {
             Debug.Log("SwitchWeapon action performed");
-
-            // Cambiar de arma basado en la rueda del mouse o la tecla Q
             if (context.control.displayName == "Scroll" || context.control.displayName == "Q")
             {
                 SwitchWeapon();
@@ -228,32 +215,19 @@ public class PlayerController : MonoBehaviour
         if (context.performed && _currentWeapon != null)
         {
             _currentWeapon.Reload();
-            UpdateAmmoUI(); // 🔹 Se actualiza la UI después de recargar
+            UpdateAmmoUI();
         }
     }
-
 
     private void SwitchWeapon()
     {
-        if (_currentWeapon == bioGun)
-        {
-            _currentWeapon = organThrow;
-            Debug.Log("Cambiado a lanzamiento de órgano");
-        }
-        else
-        {
-            _currentWeapon = bioGun;
-            Debug.Log("Cambiado a arma biológica");
-        }
+        _currentWeapon = _currentWeapon == bioGun ? organThrow : bioGun;
+        Debug.Log($"Cambiado a {_currentWeapon.GetType().Name}");
     }
-
 
     public void Win()
     {
         Debug.Log("Jugador ha ganado");
-
-        // 🔹 Notificar a `GameManager`
         GameManager.Instance.ShowWinScreen();
     }
-
 }
