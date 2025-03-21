@@ -4,6 +4,13 @@ public class OrganThrow : Weapon
 {
     public float throwForce = 10f; // Fuerza del lanzamiento
     public float throwAngle = 45f; // Ángulo de disparo en grados
+    public AudioClip throwSound; // 🔹 Sonido al lanzar
+    private AudioSource audioSource; // 🔹 Fuente de sonido
+
+    private void Awake() // 🔹 Cambié Start() por Awake()
+    {
+        audioSource = GetComponent<AudioSource>();
+    }
 
     public override void Shoot(Vector3 direction)
     {
@@ -12,6 +19,7 @@ public class OrganThrow : Weapon
         ammo--; // Restar munición
         lastShotTime = Time.time; // Aplicar cooldown
 
+        // 🔹 Instanciar el proyectil
         GameObject organ = Instantiate(projectilePrefab, firePoint.position, Quaternion.identity);
         Rigidbody rb = organ.GetComponent<Rigidbody>();
 
@@ -28,6 +36,12 @@ public class OrganThrow : Weapon
         else
         {
             Debug.LogError("OrganProjectile no tiene un Rigidbody.");
+        }
+
+        // 🔹 Reproducir sonido de lanzamiento
+        if (audioSource != null && throwSound != null)
+        {
+            audioSource.PlayOneShot(throwSound);
         }
     }
 }

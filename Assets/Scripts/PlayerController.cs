@@ -27,19 +27,24 @@ public class PlayerController : MonoBehaviour
 
     [Header("Audio")]
     public AudioSource audioSource;
-    public AudioClip[] walkSounds; // Array de sonidos de caminar
-    public AudioClip[] sprintSounds; // Array de sonidos de correr
-    public float walkStepInterval = 0.6f; // Intervalo entre pasos caminando
-    public float sprintStepInterval = 0.4f; // Intervalo entre pasos corriendo
+    public AudioClip[] walkSounds;
+    public AudioClip[] sprintSounds;
+    public AudioClip jumpSound;
+    public AudioClip reloadSound; 
+    public AudioClip weaponSwitchSound; // 🔹 Sonido al cambiar de arma
+    public float walkStepInterval = 0.6f;
+    public float sprintStepInterval = 0.4f;
 
     private PlayerInput _playerInput;
     private Vector2 _moveInput;
     private Vector2 _lookInput;
     private bool _isJumping;
     private bool _isSprinting;
+    private bool _isShooting;
     private Vector3 _velocity;
     private float _cameraPitch = 0f;
     private float nextFootstepTime = 0f;
+    private float nextFireTime = 0f; 
 
     private void Awake()
     {
@@ -65,7 +70,8 @@ public class PlayerController : MonoBehaviour
     {
         HandleMovement();
         HandleRotation();
-        HandleFootsteps(); // 🔹 Reproducir sonido de pasos según el estado del jugador
+        HandleFootsteps();
+        HandleShooting();
 
         if (Time.timeSinceLevelLoad < 0.1f)
         {
@@ -114,6 +120,15 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    private void HandleShooting()
+    {
+        if (_isShooting && Time.time >= nextFireTime)
+        {
+            ShootWeapon();
+            nextFireTime = Time.time + (1f / bioGun.fireRate);
+        }
+    }
+
     private void ToggleCursor()
     {
         if (Cursor.lockState == CursorLockMode.Locked)
@@ -153,6 +168,23 @@ public class PlayerController : MonoBehaviour
         cameraTransform.localEulerAngles = Vector3.right * _cameraPitch;
     }
 
+    private void ShootWeapon()
+    {
+        if (_currentWeapon == null) return;
+
+        Transform firePoint = _currentWeapon.firePoint;
+        if (firePoint == null) return;
+
+        Ray ray = new Ray(cameraTransform.position, cameraTransform.forward);
+        RaycastHit hit;
+        Vector3 shootDirection = Physics.Raycast(ray, out hit, 100f)
+            ? (hit.point - firePoint.position).normalized
+            : cameraTransform.forward;
+
+        _currentWeapon.Shoot(shootDirection);
+        UpdateAmmoUI();
+    }
+
     public void OnMove(InputAction.CallbackContext context)
     {
         _moveInput = context.ReadValue<Vector2>();
@@ -168,6 +200,11 @@ public class PlayerController : MonoBehaviour
         if (context.performed && characterController.isGrounded)
         {
             _isJumping = true;
+
+            if (audioSource != null && jumpSound != null)
+            {
+                audioSource.PlayOneShot(jumpSound);
+            }
         }
         else if (context.canceled)
         {
@@ -182,19 +219,13 @@ public class PlayerController : MonoBehaviour
 
     public void OnShoot(InputAction.CallbackContext context)
     {
-        if (context.performed && _currentWeapon != null)
+        if (context.performed)
         {
-            Transform firePoint = _currentWeapon.firePoint;
-            if (firePoint == null) return;
-
-            Ray ray = new Ray(cameraTransform.position, cameraTransform.forward);
-            RaycastHit hit;
-            Vector3 shootDirection = Physics.Raycast(ray, out hit, 100f)
-                ? (hit.point - firePoint.position).normalized
-                : cameraTransform.forward;
-
-            _currentWeapon.Shoot(shootDirection);
-            UpdateAmmoUI();
+            _isShooting = true;
+        }
+        else if (context.canceled)
+        {
+            _isShooting = false;
         }
     }
 
@@ -202,7 +233,6 @@ public class PlayerController : MonoBehaviour
     {
         if (context.performed)
         {
-            Debug.Log("SwitchWeapon action performed");
             if (context.control.displayName == "Scroll" || context.control.displayName == "Q")
             {
                 SwitchWeapon();
@@ -216,6 +246,11 @@ public class PlayerController : MonoBehaviour
         {
             _currentWeapon.Reload();
             UpdateAmmoUI();
+
+            if (audioSource != null && reloadSound != null)
+            {
+                audioSource.PlayOneShot(reloadSound);
+            }
         }
     }
 
@@ -223,6 +258,12 @@ public class PlayerController : MonoBehaviour
     {
         _currentWeapon = _currentWeapon == bioGun ? organThrow : bioGun;
         Debug.Log($"Cambiado a {_currentWeapon.GetType().Name}");
+
+        // 🔹 Reproducir sonido de cambio de arma
+        if (audioSource != null && weaponSwitchSound != null)
+        {
+            audioSource.PlayOneShot(weaponSwitchSound);
+        }
     }
 
     public void Win()
