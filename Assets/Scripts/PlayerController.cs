@@ -17,6 +17,10 @@ public class PlayerController : MonoBehaviour
     public OrganThrow organThrow;
     private Weapon _currentWeapon;
 
+    [Header("Weapon Models")]
+    public GameObject bioGunModel; 
+    public GameObject organProjectileModel; 
+
     [Header("References")]
     public Transform cameraTransform;
     public CharacterController characterController;
@@ -30,8 +34,8 @@ public class PlayerController : MonoBehaviour
     public AudioClip[] walkSounds;
     public AudioClip[] sprintSounds;
     public AudioClip jumpSound;
-    public AudioClip reloadSound; 
-    public AudioClip weaponSwitchSound; // 🔹 Sonido al cambiar de arma
+    public AudioClip reloadSound;  
+    public AudioClip weaponSwitchSound;
     public float walkStepInterval = 0.6f;
     public float sprintStepInterval = 0.4f;
 
@@ -44,7 +48,7 @@ public class PlayerController : MonoBehaviour
     private Vector3 _velocity;
     private float _cameraPitch = 0f;
     private float nextFootstepTime = 0f;
-    private float nextFireTime = 0f; 
+    private float nextFireTime = 0f;
 
     private void Awake()
     {
@@ -62,6 +66,14 @@ public class PlayerController : MonoBehaviour
 
         _playerInput = GetComponent<PlayerInput>();
         _playerInput.actions["ToggleCursor"].performed += ctx => ToggleCursor();
+
+        bioGun.gameObject.SetActive(true);
+        organThrow.gameObject.SetActive(false);
+
+        if (organProjectileModel != null)
+        {
+            organProjectileModel.SetActive(false);
+        }
 
         UpdateAmmoUI();
     }
@@ -231,12 +243,9 @@ public class PlayerController : MonoBehaviour
 
     public void OnSwitchWeapon(InputAction.CallbackContext context)
     {
-        if (context.performed)
+        if (context.performed && (context.control.displayName == "Scroll" || context.control.displayName == "Q"))
         {
-            if (context.control.displayName == "Scroll" || context.control.displayName == "Q")
-            {
-                SwitchWeapon();
-            }
+            SwitchWeapon();
         }
     }
 
@@ -247,6 +256,7 @@ public class PlayerController : MonoBehaviour
             _currentWeapon.Reload();
             UpdateAmmoUI();
 
+            // 🔹 Sonido de recarga
             if (audioSource != null && reloadSound != null)
             {
                 audioSource.PlayOneShot(reloadSound);
@@ -256,10 +266,13 @@ public class PlayerController : MonoBehaviour
 
     private void SwitchWeapon()
     {
-        _currentWeapon = _currentWeapon == bioGun ? organThrow : bioGun;
+        bool isSwitchingToOrganThrow = _currentWeapon == bioGun;
+        _currentWeapon = isSwitchingToOrganThrow ? organThrow : bioGun;
         Debug.Log($"Cambiado a {_currentWeapon.GetType().Name}");
 
-        // 🔹 Reproducir sonido de cambio de arma
+        bioGunModel.SetActive(!isSwitchingToOrganThrow);
+        organProjectileModel.SetActive(isSwitchingToOrganThrow);
+
         if (audioSource != null && weaponSwitchSound != null)
         {
             audioSource.PlayOneShot(weaponSwitchSound);

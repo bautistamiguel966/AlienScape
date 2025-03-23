@@ -153,5 +153,5 @@ MonoBehaviour:
   speed: 20
   lifetime: 3
   shooterTag: 
-  playerMaterial: {fileID: 2100000, guid: 3f856587040ff214690de8332d49317c, type: 2}
+  playerMaterial: {fileID: 2100000, guid: ca78d79d1a42d5e4d8fe5d4b633c972a, type: 2}
   soldierMaterial: {fileID: 2100000, guid: caccac9050d56c5458d56785729de985, type: 2}

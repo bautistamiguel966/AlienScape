@@ -23,6 +23,7 @@ public class OrganProjectile : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        Debug.Log($"🔥 Granada impactó con {other.gameObject.name}");
         if (!hasExploded)
         {
             Explode();
