@@ -2,9 +2,8 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!78 &1
 TagManager:
-  serializedVersion: 3
-  tags:
-  - Soldier
+  serializedVersion: 2
+  tags: []
   layers:
   - Default
   - TransparentFX
@@ -12,15 +11,15 @@ TagManager:
   - 
   - Water
   - UI
-  - PlayerLayer
-  - SoldierLayer
   - 
   - 
   - 
-  - 
-  - 
-  - 
-  - 
+  - 9 Wheel
+  - 10 Reinforce
+  - 11 MainBody
+  - 12 Bullet
+  - 13 Armor Collider
+  - 14 Extra Collider
   - 
   - 
   - 
@@ -42,5 +41,3 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
-  m_RenderingLayers:
-  - Default
