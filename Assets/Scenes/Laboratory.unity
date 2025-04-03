@@ -1639,8 +1639,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -372.43704, y: -136.72653}
-  m_SizeDelta: {x: -744.8741, y: -273.4531}
+  m_AnchoredPosition: {x: -403.58337, y: -140.46683}
+  m_SizeDelta: {x: -807.1668, y: -280.9337}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1267828142
 MonoBehaviour:
@@ -3094,6 +3094,16 @@ PrefabInstance:
       propertyPath: m_PlayOnAwake
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3194758060364004738, guid: 311b868b0f894914c8154d678f4e94ef,
+        type: 3}
+      propertyPath: fireRate
+      value: 30
+      objectReference: {fileID: 0}
+    - target: {fileID: 3194758060364004738, guid: 311b868b0f894914c8154d678f4e94ef,
+        type: 3}
+      propertyPath: projectileSpeed
+      value: 100
+      objectReference: {fileID: 0}
     - target: {fileID: 6675172381643391298, guid: 311b868b0f894914c8154d678f4e94ef,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -3182,7 +3192,7 @@ PrefabInstance:
     - target: {fileID: 9105090111580583929, guid: 311b868b0f894914c8154d678f4e94ef,
         type: 3}
       propertyPath: walkSpeed
-      value: 20
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 9105090111580583929, guid: 311b868b0f894914c8154d678f4e94ef,
         type: 3}

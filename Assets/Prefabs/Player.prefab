@@ -363,8 +363,8 @@ MonoBehaviour:
   cooldown: 0.5
   projectilePrefab: {fileID: 2299201648968986029, guid: 47cf346b063672c4697a913d27d07be3,
     type: 3}
-  fireRate: 5
-  projectileSpeed: 20
+  fireRate: 10
+  projectileSpeed: 35
   shootSound: {fileID: 8300000, guid: 6caccb9467bf2e04f9a9ca05d190f7bc, type: 3}
 --- !u!82 &447143252073542879
 AudioSource:

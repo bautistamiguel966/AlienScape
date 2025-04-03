@@ -18,8 +18,8 @@ public class PlayerController : MonoBehaviour
     private Weapon _currentWeapon;
 
     [Header("Weapon Models")]
-    public GameObject bioGunModel; 
-    public GameObject organProjectileModel; 
+    public GameObject bioGunModel;
+    public GameObject organProjectileModel;
 
     [Header("References")]
     public Transform cameraTransform;
@@ -29,12 +29,13 @@ public class PlayerController : MonoBehaviour
     public TextMeshProUGUI bioAmmoText;
     public TextMeshProUGUI organAmmoText;
 
+
     [Header("Audio")]
     public AudioSource audioSource;
     public AudioClip[] walkSounds;
     public AudioClip[] sprintSounds;
     public AudioClip jumpSound;
-    public AudioClip reloadSound;  
+    public AudioClip reloadSound;
     public AudioClip weaponSwitchSound;
     public float walkStepInterval = 0.6f;
     public float sprintStepInterval = 0.4f;
@@ -91,6 +92,7 @@ public class PlayerController : MonoBehaviour
             Cursor.visible = false;
         }
     }
+
 
     private void HandleMovement()
     {

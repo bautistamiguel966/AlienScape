@@ -3,8 +3,8 @@ using UnityEngine;
 public class BioGun : Weapon
 {
     [Header("Weapon Settings")]
-    public float fireRate = 5f; // 🔹 Disparos por segundo
-    public float projectileSpeed = 20f; // 🔹 Velocidad del proyectil
+    public float fireRate = 20f; // 🔹 Disparos por segundo
+    public float projectileSpeed = 50f; // 🔹 Velocidad del proyectil
     public AudioClip shootSound; // 🔹 Sonido de disparo
     private AudioSource audioSource; // 🔹 Referencia al AudioSource
 
@@ -32,7 +32,10 @@ public class BioGun : Weapon
         Rigidbody rb = projectile.GetComponent<Rigidbody>();
         if (rb != null)
         {
-            rb.linearVelocity = direction * projectileSpeed;
+            rb.linearVelocity = direction * projectileSpeed; // 🔹 Usa velocity en lugar de linearVelocity
+            rb.useGravity = false; // 🔹 Desactiva la gravedad si no quieres que caiga
+
+            Debug.Log($"🔹 Disparando con velocidad: {rb.linearVelocity.magnitude}");
         }
 
         // 🔹 Reproducir sonido de disparo
@@ -42,3 +45,4 @@ public class BioGun : Weapon
         }
     }
 }
+
