@@ -1,5 +1,5 @@
-using UnityEngine;
 using TMPro;
+using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
@@ -7,19 +7,15 @@ public class PlayerController : MonoBehaviour
     [Header("Movement Settings")]
     public float walkSpeed = 8f;
     public float sprintSpeed = 10f;
-    public float jumpForce = 1.5f;
-    public float gravity = -25f;
-    public float gravityAcceleration = 2f;
+    public float jumpForce = 1.5f; // Ajustado para un salto más controlado
+    public float gravity = -25f;   // Gravedad base
+    public float gravityAcceleration = 2f; // Aceleración de la gravedad
     public float lookSensitivity = 2f;
 
     [Header("Weapons")]
     public BioGun bioGun;
     public OrganThrow organThrow;
     private Weapon _currentWeapon;
-
-    [Header("Weapon Models")]
-    public GameObject bioGunModel;
-    public GameObject organProjectileModel;
 
     [Header("References")]
     public Transform cameraTransform;
@@ -29,64 +25,67 @@ public class PlayerController : MonoBehaviour
     public TextMeshProUGUI bioAmmoText;
     public TextMeshProUGUI organAmmoText;
 
-
-    [Header("Audio")]
-    public AudioSource audioSource;
-    public AudioClip[] walkSounds;
-    public AudioClip[] sprintSounds;
-    public AudioClip jumpSound;
-    public AudioClip reloadSound;
-    public AudioClip weaponSwitchSound;
-    public float walkStepInterval = 0.6f;
-    public float sprintStepInterval = 0.4f;
-
     private PlayerInput _playerInput;
+
     private Vector2 _moveInput;
     private Vector2 _lookInput;
     private bool _isJumping;
     private bool _isSprinting;
-    private bool _isShooting;
     private Vector3 _velocity;
     private float _cameraPitch = 0f;
-    private float nextFootstepTime = 0f;
-    private float nextFireTime = 0f;
+
+    // Animaciones
+    Animator anim;
+
+    public GameObject head; // El objeto de la cabeza (si está separado)
+    public GameObject eyes; // El objeto de los ojos
+    public GameObject hair; // El objeto del cabello
+
+    public GameObject leftear; // El objeto de los ojos
+    public GameObject rightear; // El objeto del cabello
+
 
     private void Awake()
     {
+        // 🔹 Ocultar y bloquear el cursor antes de que el juego comience
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
 
     private void Start()
     {
+ 
+        eyes.SetActive(false);
+        hair.SetActive(false);
+        leftear.SetActive(false);
+        rightear.SetActive(false);
+        // Inicializar con el arma biológica
         _currentWeapon = bioGun;
         Debug.Log("Arma inicial: BioGun");
 
+        // 🔹 Ocultar y bloquear el cursor al iniciar el juego
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
+        // 🔹 Obtener referencia al Input System
         _playerInput = GetComponent<PlayerInput>();
+
+        // 🔹 Vincular la acción ToggleCursor con el método que desbloquea el cursor
         _playerInput.actions["ToggleCursor"].performed += ctx => ToggleCursor();
 
-        bioGun.gameObject.SetActive(true);
-        organThrow.gameObject.SetActive(false);
+        UpdateAmmoUI(); // 🔹 Se actualiza la UI al inicio
 
-        if (organProjectileModel != null)
-        {
-            organProjectileModel.SetActive(false);
-        }
-
-        UpdateAmmoUI();
+        // 🔹 obtener animator del hijo
+        anim = GetComponentInChildren<Animator>();
     }
 
     private void Update()
     {
         HandleMovement();
         HandleRotation();
-        HandleFootsteps();
-        HandleShooting();
 
-        if (Time.timeSinceLevelLoad < 0.1f)
+        // 🔹 Asegurar que el cursor siga oculto al inicio
+        if (Time.timeSinceLevelLoad < 0.1f) // Solo en los primeros 0.1s del juego
         {
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
@@ -96,51 +95,32 @@ public class PlayerController : MonoBehaviour
 
     private void HandleMovement()
     {
-        float speed = _isSprinting ? sprintSpeed : walkSpeed;
+        float speed ;
+        if (_isSprinting){
+            anim.SetFloat("MovementA", 1f); //Animacion estar
+            speed =sprintSpeed;
+        }else{
+
+            speed = walkSpeed;
+        }
+
         Vector3 moveDirection = (transform.forward * _moveInput.y + transform.right * _moveInput.x) * speed;
 
         if (characterController.isGrounded)
         {
-            _velocity.y = -2f;
+            _velocity.y = -2f; // Pequeña fuerza hacia abajo para mantener al jugador pegado al suelo
             if (_isJumping)
             {
-                _velocity.y = Mathf.Sqrt(jumpForce * -2f * gravity);
+                _velocity.y = Mathf.Sqrt(jumpForce * -2f * gravity); // Aplicar la fuerza del salto
             }
         }
         else
         {
+            // Aplicar aceleración de la gravedad
             _velocity.y += gravity * gravityAcceleration * Time.deltaTime;
         }
 
         characterController.Move((moveDirection + _velocity) * Time.deltaTime);
-    }
-
-    private void HandleFootsteps()
-    {
-        if (!characterController.isGrounded || _moveInput.magnitude == 0) return;
-
-        float stepInterval = _isSprinting ? sprintStepInterval : walkStepInterval;
-        AudioClip[] selectedSounds = _isSprinting ? sprintSounds : walkSounds;
-
-        if (Time.time >= nextFootstepTime)
-        {
-            nextFootstepTime = Time.time + stepInterval;
-
-            if (selectedSounds.Length > 0 && audioSource != null)
-            {
-                AudioClip stepSound = selectedSounds[Random.Range(0, selectedSounds.Length)];
-                audioSource.PlayOneShot(stepSound);
-            }
-        }
-    }
-
-    private void HandleShooting()
-    {
-        if (_isShooting && Time.time >= nextFireTime)
-        {
-            ShootWeapon();
-            nextFireTime = Time.time + (1f / bioGun.fireRate);
-        }
     }
 
     private void ToggleCursor()
@@ -170,6 +150,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+
     private void HandleRotation()
     {
         float yaw = _lookInput.x * lookSensitivity;
@@ -182,26 +163,16 @@ public class PlayerController : MonoBehaviour
         cameraTransform.localEulerAngles = Vector3.right * _cameraPitch;
     }
 
-    private void ShootWeapon()
-    {
-        if (_currentWeapon == null) return;
-
-        Transform firePoint = _currentWeapon.firePoint;
-        if (firePoint == null) return;
-
-        Ray ray = new Ray(cameraTransform.position, cameraTransform.forward);
-        RaycastHit hit;
-        Vector3 shootDirection = Physics.Raycast(ray, out hit, 100f)
-            ? (hit.point - firePoint.position).normalized
-            : cameraTransform.forward;
-
-        _currentWeapon.Shoot(shootDirection);
-        UpdateAmmoUI();
-    }
-
     public void OnMove(InputAction.CallbackContext context)
     {
         _moveInput = context.ReadValue<Vector2>();
+
+        if (_moveInput == Vector2.zero)
+        {
+            anim.SetFloat("MovementA", 0f);
+        }else{
+            anim.SetFloat("MovementA", 0.4f);
+        }
     }
 
     public void OnLook(InputAction.CallbackContext context)
@@ -211,43 +182,91 @@ public class PlayerController : MonoBehaviour
 
     public void OnJump(InputAction.CallbackContext context)
     {
-        if (context.performed && characterController.isGrounded)
-        {
-            _isJumping = true;
 
-            if (audioSource != null && jumpSound != null)
-            {
-                audioSource.PlayOneShot(jumpSound);
-            }
-        }
-        else if (context.canceled)
+        if (context.performed && characterController.isGrounded && !_isJumping)
         {
+            anim.SetTrigger("Jump");
+            _isJumping = true;
+            
+        }
+   
+
+        if(!characterController.isGrounded)
+        {
+            anim.SetTrigger("Landen");
             _isJumping = false;
         }
     }
 
-    public void OnSprint(InputAction.CallbackContext context)
+     public void OnSprint(InputAction.CallbackContext context)
     {
-        _isSprinting = context.performed;
+        if (context.performed)
+        {
+            _isSprinting = true;
+        }
+        else if (context.canceled)
+        {
+            _isSprinting = false;
+            if (_moveInput != Vector2.zero) // Si se está moviendo pero no corriendo
+            {
+                anim.SetFloat("MovementA", 0.3f); // Animación de caminar
+            }
+            else
+            {
+                anim.SetFloat("MovementA", 0f); // Animación de estar en reposo
+            }
+        }
     }
 
     public void OnShoot(InputAction.CallbackContext context)
     {
-        if (context.performed)
+        if (context.performed && _currentWeapon != null)
         {
-            _isShooting = true;
-        }
-        else if (context.canceled)
-        {
-            _isShooting = false;
+            Transform firePoint = null;
+
+            if (_currentWeapon is BioGun)
+            {
+                firePoint = ((_currentWeapon as BioGun).firePoint);
+            }
+            else if (_currentWeapon is OrganThrow)
+            {
+                firePoint = ((_currentWeapon as OrganThrow).firePoint);
+            }
+
+            if (firePoint == null) return;
+
+            Ray ray = new Ray(cameraTransform.position, cameraTransform.forward);
+            RaycastHit hit;
+            Vector3 shootDirection;
+
+            if (Physics.Raycast(ray, out hit, 100f))
+            {
+                shootDirection = (hit.point - firePoint.position).normalized;
+            }
+            else
+            {
+                shootDirection = cameraTransform.forward;
+            }
+
+            _currentWeapon.Shoot(shootDirection);
+            UpdateAmmoUI(); // 🔹 Se actualiza la UI después de disparar
         }
     }
 
+
+
+
     public void OnSwitchWeapon(InputAction.CallbackContext context)
     {
-        if (context.performed && (context.control.displayName == "Scroll" || context.control.displayName == "Q"))
+        if (context.performed)
         {
-            SwitchWeapon();
+            Debug.Log("SwitchWeapon action performed");
+
+            // Cambiar de arma basado en la rueda del mouse o la tecla Q
+            if (context.control.displayName == "Scroll" || context.control.displayName == "Q")
+            {
+                SwitchWeapon();
+            }
         }
     }
 
@@ -256,34 +275,32 @@ public class PlayerController : MonoBehaviour
         if (context.performed && _currentWeapon != null)
         {
             _currentWeapon.Reload();
-            UpdateAmmoUI();
-
-            // 🔹 Sonido de recarga
-            if (audioSource != null && reloadSound != null)
-            {
-                audioSource.PlayOneShot(reloadSound);
-            }
+            UpdateAmmoUI(); // 🔹 Se actualiza la UI después de recargar
         }
     }
+
 
     private void SwitchWeapon()
     {
-        bool isSwitchingToOrganThrow = _currentWeapon == bioGun;
-        _currentWeapon = isSwitchingToOrganThrow ? organThrow : bioGun;
-        Debug.Log($"Cambiado a {_currentWeapon.GetType().Name}");
-
-        bioGunModel.SetActive(!isSwitchingToOrganThrow);
-        organProjectileModel.SetActive(isSwitchingToOrganThrow);
-
-        if (audioSource != null && weaponSwitchSound != null)
+        if (_currentWeapon == bioGun)
         {
-            audioSource.PlayOneShot(weaponSwitchSound);
+            _currentWeapon = organThrow;
+            Debug.Log("Cambiado a lanzamiento de órgano");
+        }
+        else
+        {
+            _currentWeapon = bioGun;
+            Debug.Log("Cambiado a arma biológica");
         }
     }
+
 
     public void Win()
     {
         Debug.Log("Jugador ha ganado");
+
+        // 🔹 Notificar a `GameManager`
         GameManager.Instance.ShowWinScreen();
     }
+
 }

@@ -21,9 +21,13 @@ public class SoldierController : MonoBehaviour
     private NavMeshAgent navMeshAgent;
     private float nextFireTime;
     private Collider playerCollider;
+    // Animador para controlar las animaciones
+    private Animator anim;
 
     private void Start()
     {
+        anim = GetComponent<Animator>(); // Obtén el Animator del soldado
+        anim.SetFloat("MovementS", 0.3f); //Animacion estar
         navMeshAgent = GetComponent<NavMeshAgent>();
         navMeshAgent.stoppingDistance = stoppingDistance;
         navMeshAgent.autoBraking = false; // 🔹 Evita que el agente frene en cada waypoint
@@ -48,11 +52,12 @@ public class SoldierController : MonoBehaviour
         }
 
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
-
+        
         if (distanceToPlayer <= detectionRange)
         {
             if (!isChasingPlayer)
             {
+                anim.SetFloat("MovementS", 0.5f); //Animacion estar
                 isChasingPlayer = true;
                 Debug.Log($"{gameObject.name}: Persiguiendo al jugador.");
             }
